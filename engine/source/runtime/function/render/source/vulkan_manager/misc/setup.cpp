@@ -21,6 +21,10 @@ int Pilot::PVulkanManager::initialize(GLFWwindow* window, class Scene& scene, Pi
     PColorGradingResourceData color_grading_resource_data = m_global_render_resource.getColorGradingTextureData(&scene, pilot_renderer);
     updateGlobalTexturesForColorGrading(color_grading_resource_data);
 
+    //Sven modify
+    PBlurResourceData blur_resource_data = m_global_render_resource.getBlurTextureData(&scene, pilot_renderer);
+    updateGlobalTexturesForBlur(blur_resource_data);
+
     if (initializeCommandPool() && initializeDescriptorPool() && createSyncPrimitives() && initializeCommandBuffers() &&
         initializeRenderPass())
         return 1;

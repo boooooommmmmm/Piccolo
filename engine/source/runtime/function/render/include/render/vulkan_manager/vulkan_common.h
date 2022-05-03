@@ -49,6 +49,11 @@ namespace Pilot
         VulkanScenePointLight       scene_point_lights[m_max_point_light_count];
         VulkanSceneDirectionalLight scene_directional_light;
         glm::mat4                   directional_light_proj_view;
+
+        //Sven modify: add more info for post processing
+        glm::vec4                   time;
+        glm::vec4                   screen_resolution;
+        glm::vec4                   editor_screen_resolution;
     };
 
     struct VulkanMeshInstance

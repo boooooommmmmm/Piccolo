@@ -24,6 +24,7 @@ void main()
     color = vec3(pow(color.x, 1.0 / 2.2), pow(color.y, 1.0 / 2.2), pow(color.z, 1.0 / 2.2));
 
     out_color = vec4(color, 1.0f);
+    //out_color.rgb = subpassLoad(in_color).rgb;
 }
 
 highp vec3 Uncharted2Tonemap(highp vec3 x)

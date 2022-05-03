@@ -117,6 +117,7 @@ namespace Pilot
         PDirectionalLightShadowPass m_directional_light_shadow_pass;
         PPointLightShadowPass       m_point_light_shadow_pass;
         PMainCameraPass             m_main_camera_pass;
+        PBlurPass                   m_blur_pass; //Sven modify
         PColorGradingPass           m_color_grading_pass;
         PToneMappingPass            m_tone_mapping_pass;
         PUIPass                     m_ui_pass;
@@ -160,6 +161,9 @@ namespace Pilot
 
         // load color grading
         void updateGlobalTexturesForColorGrading(PColorGradingResourceData& color_grading_resource_data);
+
+        //Sven modify
+        void updateGlobalTexturesForBlur(PBlurResourceData& blur_resource_data);
 
         void initializeCubeMap(VkImage&             image,
                                VkImageView&         image_view,

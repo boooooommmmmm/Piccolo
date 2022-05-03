@@ -124,6 +124,41 @@ Pilot::PColorGradingResourceData Pilot::PGlobalRenderResource::getColorGradingTe
     return color_grading_resource_data;
 }
 
+//Sven modify
+Pilot::PBlurResourceData Pilot::PGlobalRenderResource::getBlurTextureData(Scene*               scene,
+                                                                                          class PilotRenderer* renderer)
+{
+    if (!scene || !renderer)
+    {
+        throw std::runtime_error("create blur textures");
+    }
+
+    float empty_image[] = {0.5f, 0.5f, 0.5f, 0.5f};
+
+    TextureHandle      infinite_tsukuyomi_texture_handle = scene->m_infinite_tsukuyomi_texture_handle;
+    const SceneImage*  infinite_tsukuyomi_texture_image  = renderer->f_get_image(infinite_tsukuyomi_texture_handle);
+    void*              infinite_tsukuyomi_texture_image_pixels = empty_image;
+    uint32_t           infinite_tsukuyomi_texture_image_width  = 1;
+    uint32_t           infinite_tsukuyomi_texture_image_height = 1;
+    PILOT_PIXEL_FORMAT infinite_tsukuyomi_texture_image_format = PILOT_PIXEL_FORMAT::PILOT_PIXEL_FORMAT_R32G32B32_FLOAT;
+    if (infinite_tsukuyomi_texture_image != NULL)
+    {
+        infinite_tsukuyomi_texture_image_pixels = infinite_tsukuyomi_texture_image->m_pixels;
+        infinite_tsukuyomi_texture_image_width  = static_cast<uint32_t>(infinite_tsukuyomi_texture_image->m_width);
+        infinite_tsukuyomi_texture_image_height = static_cast<uint32_t>(infinite_tsukuyomi_texture_image->m_height);
+        infinite_tsukuyomi_texture_image_format = infinite_tsukuyomi_texture_image->m_format;
+    }
+
+    Pilot::PBlurResourceData blur_resource_data;
+
+    blur_resource_data._infinite_tsukuyomi_texture_image_pixels         = infinite_tsukuyomi_texture_image_pixels;
+    blur_resource_data._infinite_tsukuyomi_texture_image_width          = infinite_tsukuyomi_texture_image_width;
+    blur_resource_data._infinite_tsukuyomi_texture_image_height         = infinite_tsukuyomi_texture_image_height;
+    blur_resource_data._infinite_tsukuyomi_texture_image_format         = infinite_tsukuyomi_texture_image_format;
+
+    return blur_resource_data;
+}
+
 void Pilot::PGlobalRenderResource::clear(PVulkanContext& context)
 {
     vmaDestroyImage(context._assets_allocator,

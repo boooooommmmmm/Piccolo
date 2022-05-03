@@ -59,6 +59,23 @@ namespace Pilot
         PILOT_PIXEL_FORMAT _color_grading_LUT_texture_image_format;
     };
 
+    // Sven modify
+    struct PBlurResource
+    {
+        VkImage       _infinite_tsukuyomi_texture_image      = VK_NULL_HANDLE;
+        VkImageView   _infinite_tsukuyomi_texture_image_view = VK_NULL_HANDLE;
+        VmaAllocation _infinite_tsukuyomi_texture_image_allocation;
+    };
+
+    // Sven modify
+    struct PBlurResourceData
+    {
+        void*              _infinite_tsukuyomi_texture_image_pixels;
+        uint32_t           _infinite_tsukuyomi_texture_image_width;
+        uint32_t           _infinite_tsukuyomi_texture_image_height;
+        PILOT_PIXEL_FORMAT _infinite_tsukuyomi_texture_image_format;
+    };
+
     struct PStorageBuffer
     {
         // limits
@@ -90,10 +107,16 @@ namespace Pilot
         PColorGradingResource _color_grading_resource;
         PStorageBuffer        _storage_buffer;
 
+        //Sven modify
+        PBlurResource _blur_resource;
+
         void                      initialize(PVulkanContext& context, int frames_in_flight = 3);
         PIBLResourceData          getIBLTextureData(Scene* scene, class PilotRenderer* renderer);
         PColorGradingResourceData getColorGradingTextureData(Scene* scene, class PilotRenderer* renderer);
         void                      clear(PVulkanContext& context);
+
+        //Sven modify
+        PBlurResourceData           getBlurTextureData(Scene* scene, class PilotRenderer* renderer);
 
     private:
         void initializeIBLSamplers(PVulkanContext& context);

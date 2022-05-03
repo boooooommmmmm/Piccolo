@@ -57,6 +57,9 @@ namespace Pilot
         std::string         m_brdf_map;
         std::string         m_color_grading_map;
 
+        //Sven modify
+        std::string m_blur_map;
+
         Color            m_sky_color;
         Color            m_ambient_light;
         CameraConfig     m_camera_config;

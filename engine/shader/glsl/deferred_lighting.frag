@@ -35,6 +35,9 @@ layout(set = 0, binding = 0) readonly buffer _mesh_per_frame
     PointLight       scene_point_lights[m_max_point_light_count];
     DirectionalLight scene_directional_light;
     highp mat4       directional_light_proj_view;
+
+    //sven test
+    highp vec3       time;
 };
 
 layout(set = 0, binding = 3) uniform sampler2D brdfLUT_sampler;
@@ -94,4 +97,6 @@ void main()
     }
 
     out_color = vec4(result_color, 1.0f);
+
+    //out_color.rgb = vec3(time.y, time.y, time.y);
 }

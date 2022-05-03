@@ -20,9 +20,9 @@ void main()
     // texture(color_grading_lut_texture_sampler, uv)
 
     //x: 1/width; y: 1/height; z:width - 1; width should always equls to height * height
-    highp vec3 scale_offset = vec3( 1.0f / 256.0f, 
-                                    1.0f / 16.0f, 
-                                    16.0f - 1.0f);
+    highp vec3 scale_offset = vec3( 1.0f / float(lut_tex_size.x), 
+                                    1.0f / float(lut_tex_size.y), 
+                                    32.0f - 1.0f);
 
     highp float shift_x = floor(color.b * scale_offset.z);
     highp float delta_shift_x = (color.b * scale_offset.z) - shift_x;
@@ -39,4 +39,7 @@ void main()
     highp vec3 lut_final_color = lut_color1 * (1.0f - delta_shift_x) + lut_color2 * delta_shift_x;
 
     out_color.rgb = lut_final_color;
+    
+    //test: temporal remove color grading
+    //out_color = color;
 }

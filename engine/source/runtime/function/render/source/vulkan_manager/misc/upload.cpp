@@ -572,6 +572,20 @@ void Pilot::PVulkanManager::updateGlobalTexturesForColorGrading(PColorGradingRes
                            1);
 }
 
+//Sven modify
+void Pilot::PVulkanManager::updateGlobalTexturesForBlur(PBlurResourceData& blur_resource_data)
+{
+    // color grading texture (x1)
+    initializeTextureImage(m_global_render_resource._blur_resource._infinite_tsukuyomi_texture_image,
+                           m_global_render_resource._blur_resource._infinite_tsukuyomi_texture_image_view,
+                           m_global_render_resource._blur_resource._infinite_tsukuyomi_texture_image_allocation,
+                           blur_resource_data._infinite_tsukuyomi_texture_image_width,
+                           blur_resource_data._infinite_tsukuyomi_texture_image_height,
+                           blur_resource_data._infinite_tsukuyomi_texture_image_pixels,
+                           blur_resource_data._infinite_tsukuyomi_texture_image_format,
+                           1);
+}
+
 void Pilot::PVulkanManager::initializeCubeMap(VkImage&             image,
                                               VkImageView&         image_view,
                                               VmaAllocation&       image_allocation,

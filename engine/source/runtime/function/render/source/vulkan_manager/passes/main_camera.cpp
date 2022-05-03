@@ -273,11 +273,34 @@ namespace Pilot
         color_grading_pass.preserveAttachmentCount = 0;
         color_grading_pass.pPreserveAttachments    = NULL;
 
+        // ==================== Sven modify: blur pass ==============
+         VkAttachmentReference blur_pass_input_attachment_reference {};
+         blur_pass_input_attachment_reference.attachment     =
+             &backup_odd_color_attachment_description - attachments;
+         blur_pass_input_attachment_reference.layout     = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+         VkAttachmentReference blur_pass_color_attachment_reference {};
+         blur_pass_color_attachment_reference.attachment     = 
+             &backup_even_color_attachment_description - attachments;
+         blur_pass_color_attachment_reference.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+         VkSubpassDescription& blur_pass           = subpasses[_main_camera_subpass_blur];
+         blur_pass.pipelineBindPoint               = VK_PIPELINE_BIND_POINT_GRAPHICS;
+         blur_pass.inputAttachmentCount            = 1;
+         blur_pass.pInputAttachments               = &blur_pass_input_attachment_reference;
+         blur_pass.colorAttachmentCount            = 1;
+         blur_pass.pColorAttachments               = &blur_pass_color_attachment_reference;
+         blur_pass.pDepthStencilAttachment         = NULL;
+         blur_pass.preserveAttachmentCount         = 0;
+         blur_pass.pPreserveAttachments            = NULL;
+        //  ==================== Sven modify: finished blur pass ==============
+
         VkAttachmentReference ui_pass_color_attachment_reference {};
-        ui_pass_color_attachment_reference.attachment = &backup_even_color_attachment_description - attachments;
+        //ui_pass_color_attachment_reference.attachment = &backup_even_color_attachment_description - attachments;
+        ui_pass_color_attachment_reference.attachment = &backup_odd_color_attachment_description - attachments;
         ui_pass_color_attachment_reference.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-        uint32_t ui_pass_preserve_attachment = &backup_odd_color_attachment_description - attachments;
+        uint32_t ui_pass_preserve_attachment = &backup_even_color_attachment_description - attachments;
 
         VkSubpassDescription& ui_pass   = subpasses[_main_camera_subpass_ui];
         ui_pass.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -290,11 +313,15 @@ namespace Pilot
         ui_pass.pPreserveAttachments    = &ui_pass_preserve_attachment;
 
         VkAttachmentReference combine_ui_pass_input_attachments_reference[2] = {};
+        //combine_ui_pass_input_attachments_reference[0].attachment =
+        //    &backup_odd_color_attachment_description - attachments;
         combine_ui_pass_input_attachments_reference[0].attachment =
-            &backup_odd_color_attachment_description - attachments;
-        combine_ui_pass_input_attachments_reference[0].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        combine_ui_pass_input_attachments_reference[1].attachment =
             &backup_even_color_attachment_description - attachments;
+        combine_ui_pass_input_attachments_reference[0].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        //combine_ui_pass_input_attachments_reference[1].attachment =
+        //    &backup_even_color_attachment_description - attachments;
+        combine_ui_pass_input_attachments_reference[1].attachment =
+            &backup_odd_color_attachment_description - attachments;
         combine_ui_pass_input_attachments_reference[1].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
         VkAttachmentReference combine_ui_pass_color_attachment_reference {};
@@ -312,7 +339,8 @@ namespace Pilot
         combine_ui_pass.preserveAttachmentCount = 0;
         combine_ui_pass.pPreserveAttachments    = NULL;
 
-        VkSubpassDependency dependencies[7] = {};
+        //VkSubpassDependency dependencies[7] = {};
+        VkSubpassDependency dependencies[8] = {};//sven modify: add blur pass
 
         VkSubpassDependency& deferred_lighting_pass_depend_on_shadow_map_pass = dependencies[0];
         deferred_lighting_pass_depend_on_shadow_map_pass.srcSubpass           = VK_SUBPASS_EXTERNAL;
@@ -375,8 +403,25 @@ namespace Pilot
             VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
         color_grading_pass_depend_on_tone_mapping_pass.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-        VkSubpassDependency& ui_pass_depend_on_color_grading_pass = dependencies[5];
-        ui_pass_depend_on_color_grading_pass.srcSubpass           = _main_camera_subpass_color_grading;
+        //=========================Sven modfiy: blur pass=====================
+        VkSubpassDependency& blur_pass_depend_on_color_grading_pass = dependencies[5];
+        blur_pass_depend_on_color_grading_pass.srcSubpass           = _main_camera_subpass_color_grading;
+        blur_pass_depend_on_color_grading_pass.dstSubpass           = _main_camera_subpass_blur;
+        blur_pass_depend_on_color_grading_pass.srcStageMask =
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        blur_pass_depend_on_color_grading_pass.dstStageMask =
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        blur_pass_depend_on_color_grading_pass.srcAccessMask =
+            VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        blur_pass_depend_on_color_grading_pass.dstAccessMask =
+            VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+        blur_pass_depend_on_color_grading_pass.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+        //=========================Sven modfiy: blur pass=====================
+
+        //VkSubpassDependency& ui_pass_depend_on_color_grading_pass = dependencies[5];
+        VkSubpassDependency& ui_pass_depend_on_color_grading_pass = dependencies[6];
+        //ui_pass_depend_on_color_grading_pass.srcSubpass           = _main_camera_subpass_color_grading;
+        ui_pass_depend_on_color_grading_pass.srcSubpass           = _main_camera_subpass_blur;
         ui_pass_depend_on_color_grading_pass.dstSubpass           = _main_camera_subpass_ui;
         ui_pass_depend_on_color_grading_pass.srcStageMask =
             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -388,7 +433,8 @@ namespace Pilot
             VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
         ui_pass_depend_on_color_grading_pass.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-        VkSubpassDependency& combine_ui_pass_depend_on_ui_pass = dependencies[6];
+        //VkSubpassDependency& combine_ui_pass_depend_on_ui_pass = dependencies[6];
+        VkSubpassDependency& combine_ui_pass_depend_on_ui_pass = dependencies[7];
         combine_ui_pass_depend_on_ui_pass.srcSubpass           = _main_camera_subpass_ui;
         combine_ui_pass_depend_on_ui_pass.dstSubpass           = _main_camera_subpass_combine_ui;
         combine_ui_pass_depend_on_ui_pass.srcStageMask =
@@ -2085,8 +2131,16 @@ namespace Pilot
         setupSwapchainFramebuffers();
     }
 
+    //Sven modify
+    //void PMainCameraPass::draw(PColorGradingPass& color_grading_pass,
+    //                           PToneMappingPass&  tone_mapping_pass,
+    //                           PUIPass&           ui_pass,
+    //                           PCombineUIPass&    combine_ui_pass,
+    //                           uint32_t           current_swapchain_image_index,
+    //                           void*              ui_state)
     void PMainCameraPass::draw(PColorGradingPass& color_grading_pass,
                                PToneMappingPass&  tone_mapping_pass,
+                               PBlurPass&         blur_pass,
                                PUIPass&           ui_pass,
                                PCombineUIPass&    combine_ui_pass,
                                uint32_t           current_swapchain_image_index,
@@ -2171,6 +2225,10 @@ namespace Pilot
 
         m_p_vulkan_context->_vkCmdNextSubpass(m_command_info._current_command_buffer, VK_SUBPASS_CONTENTS_INLINE);
 
+        //Sven modify
+        blur_pass.draw(m_mesh_perframe_storage_buffer_object);
+        m_p_vulkan_context->_vkCmdNextSubpass(m_command_info._current_command_buffer, VK_SUBPASS_CONTENTS_INLINE);
+
         VkClearAttachment clear_attachments[1];
         clear_attachments[0].aspectMask                  = VK_IMAGE_ASPECT_COLOR_BIT;
         clear_attachments[0].colorAttachment             = 0;
@@ -2202,8 +2260,16 @@ namespace Pilot
         m_p_vulkan_context->_vkCmdEndRenderPass(m_command_info._current_command_buffer);
     }
 
+    //Sven modify
+    //void PMainCameraPass::drawForward(PColorGradingPass& color_grading_pass,
+    //                                PToneMappingPass&  tone_mapping_pass,
+    //                                PUIPass&           ui_pass,
+    //                                PCombineUIPass&    combine_ui_pass,
+    //                                uint32_t           current_swapchain_image_index,
+    //                                void*              ui_state)
     void PMainCameraPass::drawForward(PColorGradingPass& color_grading_pass,
                                       PToneMappingPass&  tone_mapping_pass,
+                                      PBlurPass&         blur_pass,
                                       PUIPass&           ui_pass,
                                       PCombineUIPass&    combine_ui_pass,
                                       uint32_t           current_swapchain_image_index,
@@ -2261,6 +2327,10 @@ namespace Pilot
         color_grading_pass.draw();
 
         m_p_vulkan_context->_vkCmdNextSubpass(m_command_info._current_command_buffer, VK_SUBPASS_CONTENTS_INLINE);
+
+        // Sven modify
+        //blur_pass.draw(m_mesh_perframe_storage_buffer_object);
+        //m_p_vulkan_context->_vkCmdNextSubpass(m_command_info._current_command_buffer, VK_SUBPASS_CONTENTS_INLINE);
 
         VkClearAttachment clear_attachments[1];
         clear_attachments[0].aspectMask                  = VK_IMAGE_ASPECT_COLOR_BIT;

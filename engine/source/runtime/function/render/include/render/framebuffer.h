@@ -164,6 +164,9 @@ namespace Pilot
         // global textures for color grading
         TextureHandle m_color_grading_LUT_texture_handle;
 
+        //Sven modify
+        TextureHandle m_infinite_tsukuyomi_texture_handle;
+
         Vector3           m_sky_color;
         PAmbientLight     m_ambient_light;
         PDirectionalLight m_directional_light;

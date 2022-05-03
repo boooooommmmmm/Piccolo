@@ -860,6 +860,10 @@ namespace Pilot
                                               .generic_string()
                                               .c_str());
 
+            //Sven modify
+            m_scene->m_infinite_tsukuyomi_texture_handle = SceneBuilder::loadTexture(
+                AssetManager::getInstance().getFullPath(global_res.m_blur_map).generic_string().c_str());
+
             m_scene->m_sky_color     = global_res.m_sky_color.toVector3();
             m_scene->m_ambient_light = {global_res.m_ambient_light.toVector3()};
 
