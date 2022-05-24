@@ -1,10 +1,7 @@
 #pragma once
 
 #include "runtime/core/base/macro.h"
-#include "runtime/core/base/public_singleton.h"
 #include "runtime/core/meta/serializer/serializer.h"
-
-#include "runtime/function/framework/component/component.h"
 
 #include <filesystem>
 #include <fstream>
@@ -16,7 +13,7 @@
 
 namespace Pilot
 {
-    class AssetManager : public PublicSingleton<AssetManager>
+    class AssetManager
     {
     public:
         template<typename AssetType>
@@ -68,32 +65,7 @@ namespace Pilot
             return true;
         }
 
-        void initialize();
-        void clear() {}
-
         std::filesystem::path getFullPath(const std::string& relative_path) const;
 
-        typedef std::function<Reflection::ReflectionPtr<Component>(std::string, GObject*)> ComponentLoaderFunc;
-        ComponentLoaderFunc getComponentLoader(std::string component_type_name)
-        {
-            return m_loader_map[component_type_name];
-        }
-
-        void registerComponentType(std::string component_type_name, ComponentLoaderFunc func)
-        {
-            m_loader_map[component_type_name] = func;
-        }
-
-#define REGISTER_COMPONENT(COMPONENT_TYPE, COMPONENT_RES_TYPE, TICK_IN_EDITOR_MODE) \
-    registerComponentType(#COMPONENT_TYPE, [this](std::string component_res_url, GObject* parent_object) { \
-        COMPONENT_RES_TYPE component_res; \
-        loadAsset(component_res_url, component_res); \
-        auto component                   = PILOT_REFLECTION_NEW(COMPONENT_TYPE, component_res, parent_object); \
-        component->m_tick_in_editor_mode = TICK_IN_EDITOR_MODE; \
-        return component; \
-    });
-
-    private:
-        std::unordered_map<std::string, ComponentLoaderFunc> m_loader_map;
     };
 } // namespace Pilot

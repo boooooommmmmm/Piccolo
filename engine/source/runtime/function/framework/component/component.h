@@ -10,17 +10,21 @@ namespace Pilot
     {
         REFLECTION_BODY(Component)
     protected:
-        GObject* m_parent_object;
+        std::weak_ptr<GObject> m_parent_object;
         bool     m_is_dirty {false};
 
     public:
-        Component(GObject * object) : m_parent_object {object} {}
-        Component() {}
-        virtual ~Component() { m_parent_object = nullptr; }
+        Component() = default;
+        virtual ~Component() {}
 
-        void setParentObject(GObject * object) { m_parent_object = object; }
+        // Instantiating the component after definition loaded
+        virtual void postLoadResource(std::weak_ptr<GObject> parent_object) { m_parent_object = parent_object;}
 
         virtual void tick(float delta_time) {};
+
+        bool isDirty() const { return m_is_dirty; }
+
+        void setDirtyFlag(bool is_dirty) { m_is_dirty = is_dirty; }
 
         bool m_tick_in_editor_mode {false};
     };
