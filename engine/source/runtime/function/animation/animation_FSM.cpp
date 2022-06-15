@@ -30,37 +30,98 @@ namespace Pilot
         bool   is_moving      = speed > 0.01f;
         bool   start_walk_end = false;
 
+        // start_walk_end  = speed < 1.99f && speed > 0.99f;
+
         switch (m_state)
         {
             case States::_idle:
                 /**** [0] ****/
+                // LOG_INFO("_idle");
+                if (is_jumping)
+                {
+                    m_state = States::_jump_start_from_idle;
+                }
+                else if (is_moving)
+                {
+                    m_state = States::_walk_start;
+                }
                 break;
             case States::_walk_start:
                 /**** [1] ****/
+                // LOG_INFO("_walk_start");
+                if (is_clip_finish)
+                {
+                    m_state = States::_walk_run;
+                }
                 break;
             case States::_walk_run:
                 /**** [2] ****/
+                // LOG_INFO("_walk_run");
+                if (is_jumping)
+                {
+                    m_state = States::_jump_start_from_walk_run;
+                }
+                else if (start_walk_end && is_clip_finish)
+                {
+                    m_state = States::_walk_stop;
+                }
+                else if (!is_moving)
+                {
+                    m_state = States::_idle;
+                }
                 break;
             case States::_walk_stop:
                 /**** [3] ****/
+                // LOG_INFO("_walk_stop");
+                if (!is_moving && is_clip_finish)
+                {
+                    m_state = States::_idle;
+                }
                 break;
             case States::_jump_start_from_idle:
                 /**** [4] ****/
+                if (is_jumping && is_clip_finish)
+                {
+                    m_state = States::_jump_loop_from_idle;
+                }
                 break;
             case States::_jump_loop_from_idle:
                 /**** [5] ****/
+                if (!is_jumping)
+                {
+                    m_state = States::_jump_end_from_idle;
+                }
                 break;
             case States::_jump_end_from_idle:
                 /**** [6] ****/
+                if (is_clip_finish)
+                {
+                    m_state = States::_idle;
+                }
                 break;
             case States::_jump_start_from_walk_run:
                 /**** [7] ****/
+                // LOG_INFO("_jump_start_from_walk_run");
+                if (is_clip_finish)
+                {
+                    m_state = States::_jump_loop_from_walk_run;
+                }
                 break;
             case States::_jump_loop_from_walk_run:
                 /**** [8] ****/
+                // LOG_INFO("_jump_loop_from_walk_run");
+                if (!is_jumping)
+                {
+                    m_state = States::_jump_end_from_walk_run;
+                }
                 break;
             case States::_jump_end_from_walk_run:
                 /**** [9] ****/
+                // LOG_INFO("_jump_end_from_walk_run");
+                if (is_clip_finish)
+                {
+                    m_state = States::_walk_run;
+                }
                 break;
             default:
                 break;

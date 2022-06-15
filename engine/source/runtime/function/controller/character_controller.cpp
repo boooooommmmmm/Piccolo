@@ -75,18 +75,63 @@ namespace Pilot
         }
 
         hits.clear();
-
+                
         // side pass
-        //if (physics_scene->sweep(
-        //    m_rigidbody_shape,
-        //    /**** [0] ****/,
-        //    /**** [1] ****/,
-        //    /**** [2] ****/,
-        //    hits))
-        //{
-        //    final_position += /**** [3] ****/;
-        //}
-        //else
+        if (physics_scene->sweep(
+                m_rigidbody_shape, world_transform.getMatrix(), horizontal_direction, horizontal_displacement.length(), hits))
+        {
+            //Check if can climb the stairs
+            float max_hit_height = -999;
+            Vector3 max_hit_position;
+            for (int i = 0; i < hits.size(); i++)
+            {
+                float hit_height = hits[i].hit_position.z;
+                if (hit_height > max_hit_height)
+                {
+                    max_hit_height = hit_height;
+                    max_hit_position = hits[i].hit_position;
+                }
+            }            
+
+            float delta_height = max_hit_height - world_transform.m_position.z;
+
+            //climb the satirs
+            if (delta_height > 0.000001f && delta_height < 0.3f) // stair is 0.25 height
+            {
+                m_is_touch_ground = true;
+
+                float distance_from_hit_point = final_position.distance(max_hit_position);
+                if (distance_from_hit_point > horizontal_displacement.length())
+                {
+                    Vector3 climb_stairs_direction = max_hit_position - world_transform.m_position;
+                    final_position = world_transform.m_position + horizontal_direction * horizontal_displacement.length();
+                    final_position.z = world_transform.m_position.z +
+                                       climb_stairs_direction.length() /
+                                        distance_from_hit_point *
+                                        horizontal_displacement.length();
+                }
+                else
+                {
+                    final_position += horizontal_direction * horizontal_displacement.length();
+                    final_position.z = max_hit_height;
+                }
+            }
+            //if is not climbing stairs and hit collider
+            else
+            {
+                Vector3 total_normal;
+                for (int i = 0; i < hits.size(); i++)
+                {
+                    total_normal += hits[i].hit_normal;
+                }
+                total_normal.z = 0.0f;
+                total_normal.normalise();
+                horizontal_direction -= total_normal;
+
+                final_position += horizontal_direction * horizontal_displacement.length();
+            }
+        }
+        else
         {
             final_position += horizontal_displacement;
         }
