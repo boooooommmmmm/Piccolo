@@ -122,7 +122,7 @@ namespace Pilot
                 Vector3 total_normal;
                 for (int i = 0; i < hits.size(); i++)
                 {
-                    total_normal += hits[i].hit_normal;
+                    total_normal += hits[i].hit_normal.normalisedCopy();
                 }
                 total_normal.z = 0.0f;
                 total_normal.normalise();
