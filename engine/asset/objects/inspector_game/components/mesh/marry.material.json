@@ -1,0 +1,7 @@
+{
+  "base_colour_texture_file": "asset/objects/inspector_game/components/mesh/_textures/marry_base.png",
+  "metallic_roughness_texture_file": "asset/objects/inspector_game/components/mesh/_textures/default_mr.jpg",
+  "normal_texture_file": "asset/objects/inspector_game/components/mesh/_textures/default_normal.jpg",
+  "occlusion_texture_file": "",
+  "emissive_texture_file": ""
+}

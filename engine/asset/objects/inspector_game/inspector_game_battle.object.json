@@ -1,0 +1,64 @@
+{
+    "components": [
+        {
+            "$context": {
+                "transform": {
+                    "position": {
+                        "x": 10,
+                        "y": 3,
+                        "z": 0
+                    },
+                    "rotation": {
+                        "w": 1,
+                        "x": 0,
+                        "y": 0,
+                        "z": 0
+                    },
+                    "scale": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1
+                    }
+                }
+            },
+            "$typeName": "TransformComponent"
+        },
+        {
+            "$context": {
+                "mesh_res": {
+                    "sub_meshes": [
+                        {
+                            "material": "asset/objects/inspector_game/components/mesh/marry.material.json",
+                            "obj_file_ref": "asset/objects/inspector_game/components/mesh/marry.obj",
+                            "transform": {
+                                "position": {
+                                    "x": 0,
+                                    "y": 0,
+                                    "z": 0
+                                },
+                                "rotation": {
+                                    "w": 1,
+                                    "x": 0,
+                                    "y": 0,
+                                    "z": 0
+                                },
+                                "scale": {
+                                    "x": 1,
+                                    "y": 1,
+                                    "z": 1
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "$typeName": "MeshComponent"
+        },
+        {
+            "$context": {
+                "player_hp": 200
+            },
+            "$typeName": "InspectorGame"
+        }
+    ]
+}

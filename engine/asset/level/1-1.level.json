@@ -36,6 +36,35 @@
       "definition": "asset/objects/character/player/player.object.json"
     },
     {
+      "name": "Inspector Game Here!!!",
+      "instanced_components": [
+        {
+          "$typeName": "TransformComponent",
+          "$context": {
+            "transform": {
+              "position": {
+                "x": 0,
+                "y": 3,
+                "z": 0
+              },
+              "rotation": {
+                "w": 0.707,
+                "x": 0.707,
+                "y": 0,
+                "z": 0
+              },
+              "scale": {
+                "x": 0.6,
+                "y": 0.6,
+                "z": 0.6
+              }
+            }
+          }
+        }
+      ],
+      "definition": "asset/objects/inspector_game/inspector_game_battle.object.json"
+    },
+    {
       "name": "Wall_1",
       "instanced_components": [
         {
