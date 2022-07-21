@@ -56,9 +56,12 @@
         },
         {
             "$context": {
-                "player_hp": 200
+                "inspector_game_res" :
+                {
+                    "player_hp": 200
+                }                
             },
-            "$typeName": "InspectorGame"
+            "$typeName": "InspectorGameComponent"
         }
     ]
 }
