@@ -58,7 +58,8 @@
             "$context": {
                 "inspector_game_res" :
                 {
-                    "player_hp": 200
+                    "log_info": "this is a information box.",
+                    "time_info": "999999"
                 }                
             },
             "$typeName": "InspectorGameComponent"

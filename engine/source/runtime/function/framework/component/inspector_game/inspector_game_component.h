@@ -5,6 +5,7 @@
 #include "runtime/function/render/render_object.h"
 
 #include <vector>
+#include <runtime/function/inspector_game/inspector_game_battle_admin.h>
 
 namespace Piccolo
 {
@@ -15,13 +16,16 @@ namespace Piccolo
     public:
         InspectorGameComponent() = default;
 
-        //~InspectorGameComponent() override;
+        ~InspectorGameComponent() override;
 
-        //void tick(float delta_time) override;
+        void tick(float delta_time) override;
 
     private:
         META(Enable)
         InspectorGameComponentRes m_inspector_game_res;
+
+        InspectorGameBattleAdmin *m_battle_admin;
+        bool m_is_initialized {false};
     };
 
 } // namespace Piccolo
