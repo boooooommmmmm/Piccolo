@@ -19,10 +19,13 @@ namespace Piccolo
 
         float       m_player_hp {100.f};
         std::string m_skill_1 {"Attack 普通攻击"};
+        int         m_skill_1_cool_down {0};
         bool        m_use_skill_1 {false};
         std::string m_skill_2 {"Black bear attack heart 黑虎掏心"};
+        int         m_skill_2_cool_down {0};
         bool        m_use_skill_2 {false};
         std::string m_skill_3 {"Lightning five whip 闪电五连鞭"};
+        int         m_skill_3_cool_down {0};
         bool        m_use_skill_3 {false};
     };
 } // namespace Piccolo
