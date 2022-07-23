@@ -1,4 +1,4 @@
-#include "inspector_game_battle_admin.h"
+ï»¿#include "inspector_game_battle_admin.h"
 #include <engine.cpp>
 
 namespace Piccolo
@@ -9,17 +9,17 @@ namespace Piccolo
         m_player->team = InspectorGameTeam::Player;
 
         m_player->skills.clear();
-        m_player->skills.push_back(*new InspectorGameSkillData({"Normal Attack ÆÕÍ¨¹¥»÷", 0, 0, 10.0f}));
-        m_player->skills.push_back(*new InspectorGameSkillData({"Black bear attack heart ºÚ»¢ÌÍÐÄ", 2, 2, 20.0f}));
-        m_player->skills.push_back(*new InspectorGameSkillData({"Lightning five whip ÉÁµçÎåÁ¬±Þ", 3, 3, 30.0f}));
+        m_player->skills.push_back(*new InspectorGameSkillData({"Normal Attack!", 0, 0, 10.0f}));
+        m_player->skills.push_back(*new InspectorGameSkillData({"Black bear attack heart!!", 2, 2, 20.0f}));
+        m_player->skills.push_back(*new InspectorGameSkillData({"Lightning five whip!!!", 3, 3, 30.0f}));
 
         m_enemy       = new InspectorGameUnitData();
         m_enemy->team = InspectorGameTeam::Enemy;
 
         m_enemy->skills.clear();
-        m_enemy->skills.push_back(*new InspectorGameSkillData({"skill1", 0, 0, 10.0f}));
-        m_enemy->skills.push_back(*new InspectorGameSkillData({"skill2", 2, 2, 20.0f}));
-        m_enemy->skills.push_back(*new InspectorGameSkillData({"skill3", 3, 3, 30.0f}));
+        m_enemy->skills.push_back(*new InspectorGameSkillData({"Normal Attack!", 0, 0, 10.0f}));
+        m_enemy->skills.push_back(*new InspectorGameSkillData({"Angry Crow Takes Flight!!", 2, 2, 15.0f}));
+        m_enemy->skills.push_back(*new InspectorGameSkillData({"Tornado Decimates Trailer Park!!!", 3, 3, 20.0f}));
 
         m_units.clear();
         m_units.push_back(m_player);
@@ -54,10 +54,11 @@ namespace Piccolo
                 }
                 break;
             case InspectorGameBattleState::Win:
-                m_battle_info = "congratulations!!!";
+                m_battle_info =
+                    "Congratulations!!! You win!!!  ---I am looking for a job to feed myself. Please contact me...";
                 break;
             case InspectorGameBattleState::Lose:
-                m_battle_info = "CAI";
+                m_battle_info = "!!!CAI!!!";
                 break;
         }
     }
@@ -146,10 +147,12 @@ namespace Piccolo
 
     void InspectorGameBattleAdmin::OnEnemyAction()
     {
-        InspectorGameUnitData* target = ChooseTarget(m_enemy);
-        float                  damage = OnUnitAttack(m_enemy, target, &m_enemy->skills[0]);
+        InspectorGameUnitData*  target = ChooseTarget(m_enemy);
+        InspectorGameSkillData* skill  = ChooseSkill(m_enemy);
+        float                   damage = OnUnitAttack(m_enemy, target, skill);
 
-        m_battle_info  = "Enemy attacks you, deal [" + std::to_string(damage) + "] damge";
+        m_battle_info =
+            "Enemy use skill [" + skill->skill_name + "] attack you, deal [" + std::to_string(damage) + "] damge";
         m_action_state = InspectorGameBattleActionState::PlayEnemyAnimation;
     }
 
@@ -222,7 +225,7 @@ namespace Piccolo
             return m_enemy;
         }
         // is enemy
-        else if (action_unit->team == InspectorGameTeam::Player)
+        else if (action_unit->team == InspectorGameTeam::Enemy)
         {
             return m_player;
         }
@@ -233,5 +236,56 @@ namespace Piccolo
         }
     }
 
-    bool InspectorGameBattleAdmin::CheckSkillIsAvaliable(InspectorGameSkillData skill) { return skill.skill_cd == 0; }
+    InspectorGameSkillData* InspectorGameBattleAdmin::ChooseSkill(InspectorGameUnitData* action_unit)
+    {
+        if (action_unit->team == InspectorGameTeam::Player)
+        {
+            return ChooseSkillByAI(action_unit); // TODO: player has its own auto attack logic
+        }
+        // is enemy
+        else if (action_unit->team == InspectorGameTeam::Enemy)
+        {
+            return ChooseSkillByAI(action_unit);
+        }
+        else
+        {
+            LOG_ERROR("InspectorGameBattleAdmin::ChooseTarget ERROR! Plase check unit team data!");
+            return nullptr;
+        }
+    }
+
+    InspectorGameSkillData* InspectorGameBattleAdmin::ChooseSkillByAI(InspectorGameUnitData* action_unit)
+    {
+        std::vector<float> skill_weights             = GetSkillWeight(action_unit);
+        int                most_valuable_skill_index = 0; // default skill / normal attack
+        int                largest_skill_wegith      = 0; // default skill / normal attack
+
+        for (int i = 0; i < action_unit->skills.size(); i++)
+        {
+            InspectorGameSkillData skill = action_unit->skills[i];
+            if (skill.skill_cd == 0)
+            {
+                float _current_skill_weight = skill_weights[i];
+                if (largest_skill_wegith < _current_skill_weight) // TODO: each AI has its choose skill logic
+                {
+                    largest_skill_wegith      = _current_skill_weight;
+                    most_valuable_skill_index = i;
+                }
+            }
+        }
+
+        return &action_unit->skills[most_valuable_skill_index];
+    }
+
+    std::vector<float> InspectorGameBattleAdmin::GetSkillWeight(InspectorGameUnitData* action_unit)
+    {
+        std::vector<float> skill_weights;
+        for (InspectorGameSkillData& skill : action_unit->skills)
+        {
+            skill_weights.push_back(skill.skill_damge);
+        }
+
+        return skill_weights;
+    }
+
 } // namespace Piccolo

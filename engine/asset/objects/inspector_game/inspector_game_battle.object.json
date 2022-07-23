@@ -56,11 +56,12 @@
         },
         {
             "$context": {
-                "inspector_game_res" :
-                {
-                    "log_info": "this is a information box.",
-                    "time_info": "999999"
-                }                
+              "inspector_game_res": {
+                "log_info": "this is a information box.",
+                "time_info": "999999",
+                "player_hp": 100,
+                "enemy_hp": 200
+              }                
             },
             "$typeName": "InspectorGameComponent"
         }

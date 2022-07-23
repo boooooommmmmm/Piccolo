@@ -11,6 +11,9 @@ namespace Piccolo
             m_battle_admin = new InspectorGameBattleAdmin();
             m_battle_admin->Init();
 
+            m_battle_admin->SetPlayerHP(m_inspector_game_res.m_player_hp);
+            m_battle_admin->SetEnemyHP(m_inspector_game_res.m_enemy_hp);
+
             m_inspector_game_res.m_skill_1 = m_battle_admin->GetSkillName(1);
             m_inspector_game_res.m_skill_2 = m_battle_admin->GetSkillName(2);
             m_inspector_game_res.m_skill_3 = m_battle_admin->GetSkillName(3);

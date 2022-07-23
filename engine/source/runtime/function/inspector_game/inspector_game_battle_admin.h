@@ -58,7 +58,10 @@ namespace Piccolo
         float       GetEnemyHP() { return m_enemy->hp; }
         int         GetSkillCoolDown(int skill_index) { return m_player->skills[skill_index - 1].skill_cd; }
         std::string GetSkillName(int skill_index) { return m_player->skills[skill_index - 1].skill_name; }
-        void        SetPlayerInput(std::vector<bool> used_skill);
+
+        void SetPlayerHP(float hp) { m_player->hp = hp; }
+        void SetEnemyHP(float hp) { m_enemy->hp = hp; }
+        void SetPlayerInput(std::vector<bool> used_skill);
 
     private:
         InspectorGameBattleState             m_state        = InspectorGameBattleState::InspectorGameBattleState_None;
@@ -71,8 +74,8 @@ namespace Piccolo
         std::string m_battle_info {""};
         std::string m_time_info {"Wait for instructing µÈ´ýÖ¸Áî¡£¡£¡£"};
 
-        const int m_animation_frames {300}; // default animation is 3 seconds
-        int       m_animation_remain_frames {300};
+        const int m_animation_frames {600}; // default animation is 3 seconds
+        int       m_animation_remain_frames {600};
 
         void SettleBattle();
         void CheckInstruction();
@@ -85,7 +88,10 @@ namespace Piccolo
         void OnUnitDie(InspectorGameUnitData* dying_unit);
 
         // tool functions
-        InspectorGameUnitData* ChooseTarget(InspectorGameUnitData* current_unit);
-        bool                   CheckSkillIsAvaliable(InspectorGameSkillData skill);
+        InspectorGameUnitData*  ChooseTarget(InspectorGameUnitData* current_unit);
+        InspectorGameSkillData* ChooseSkill(InspectorGameUnitData* current_unit);
+        InspectorGameSkillData* ChooseSkillByAI(InspectorGameUnitData* action_unit);
+        std::vector<float>      GetSkillWeight(InspectorGameUnitData* action_unit);
+        bool                    CheckSkillIsAvaliable(InspectorGameSkillData skill) { return skill.skill_cd == 0; }
     };
 } // namespace Piccolo
