@@ -12,8 +12,10 @@
 #include "runtime/engine.h"
 #include "runtime/function/framework/world/world_manager.h"
 #include "runtime/function/input/input_system.h"
-#include "runtime/function/physics/physics_system.h"
+#include "runtime/function/particle/particle_manager.h"
 #include "runtime/function/physics/physics_manager.h"
+#include "runtime/function/render/debugdraw/debug_draw_manager.h"
+#include "runtime/function/render/render_debug_config.h"
 #include "runtime/function/render/render_system.h"
 #include "runtime/function/render/window_system.h"
 
@@ -32,8 +34,6 @@ namespace Piccolo
 
         m_asset_manager = std::make_shared<AssetManager>();
 
-        m_legacy_physics_system = std::make_shared<PhysicsSystem>();
-
         m_physics_manager = std::make_shared<PhysicsManager>();
         m_physics_manager->initialize();
 
@@ -47,22 +47,33 @@ namespace Piccolo
         m_input_system = std::make_shared<InputSystem>();
         m_input_system->initialize();
 
+        m_particle_manager = std::make_shared<ParticleManager>();
+        m_particle_manager->initialize();
+
         m_render_system = std::make_shared<RenderSystem>();
         RenderSystemInitInfo render_init_info;
         render_init_info.window_system = m_window_system;
         m_render_system->initialize(render_init_info);
+
+        m_debugdraw_manager = std::make_shared<DebugDrawManager>();
+        m_debugdraw_manager->initialize();
+
+        m_render_debug_config = std::make_shared<RenderDebugConfig>();
     }
 
     void RuntimeGlobalContext::shutdownSystems()
     {
+        m_render_debug_config.reset();
+
+        m_debugdraw_manager.reset();
+
+        m_render_system->clear();
         m_render_system.reset();
 
         m_window_system.reset();
 
         m_world_manager->clear();
         m_world_manager.reset();
-
-        m_legacy_physics_system.reset();
 
         m_physics_manager->clear();
         m_physics_manager.reset();
@@ -72,11 +83,12 @@ namespace Piccolo
 
         m_asset_manager.reset();
 
-
         m_logger_system.reset();
 
         m_file_system.reset();
 
         m_config_manager.reset();
+
+        m_particle_manager.reset();
     }
 } // namespace Piccolo

@@ -15,7 +15,7 @@ namespace Piccolo
     {
         friend class PiccoloEditor;
 
-        static const float k_fps_alpha;
+        static const float s_fps_alpha;
 
     public:
         void startEngine(const std::string& config_file_path);
@@ -32,7 +32,7 @@ namespace Piccolo
 
     protected:
         void logicalTick(float delta_time);
-        bool rendererTick();
+        bool rendererTick(float delta_time);
 
         void calculateFPS(float delta_time);
 

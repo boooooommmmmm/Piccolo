@@ -12,14 +12,20 @@
 #include "runtime/function/render/render_resource_base.h"
 #include "runtime/function/render/render_scene.h"
 #include "runtime/function/render/window_system.h"
+#include "runtime/function/global/global_context.h"
+#include "runtime/function/render/debugdraw/debug_draw_manager.h"
 
 #include "runtime/function/render/passes/main_camera_pass.h"
+#include "runtime/function/render/passes/particle_pass.h"
 
-#include "runtime/function/render/rhi/vulkan/vulkan_rhi.h"
+#include "runtime/function/render/interface/vulkan/vulkan_rhi.h"
 
 namespace Piccolo
 {
-    RenderSystem::~RenderSystem() {}
+    RenderSystem::~RenderSystem()
+    {
+        clear();
+    }
 
     void RenderSystem::initialize(RenderSystemInitInfo init_info)
     {
@@ -70,7 +76,7 @@ namespace Piccolo
 
         // initialize render pipeline
         RenderPipelineInitInfo pipeline_init_info;
-        pipeline_init_info.enable_fxaa = global_rendering_res.m_enable_fxaa;
+        pipeline_init_info.enable_fxaa     = global_rendering_res.m_enable_fxaa;
         pipeline_init_info.render_resource = m_render_resource;
 
         m_render_pipeline        = std::make_shared<RenderPipeline>();
@@ -88,7 +94,7 @@ namespace Piccolo
                  .layout;
     }
 
-    void RenderSystem::tick()
+    void RenderSystem::tick(float delta_time)
     {
         // process swap data between logic and render contexts
         processSwapData();
@@ -106,6 +112,8 @@ namespace Piccolo
         // prepare pipeline's render passes data
         m_render_pipeline->preparePassData(m_render_resource);
 
+        g_runtime_global_context.m_debugdraw_manager->tick(delta_time);
+
         // render one frame
         if (m_render_pipeline_type == RENDER_PIPELINE_TYPE::FORWARD_PIPELINE)
         {
@@ -121,11 +129,40 @@ namespace Piccolo
         }
     }
 
+    void RenderSystem::clear()
+    {
+        if (m_rhi)
+        {
+            m_rhi->clear();
+        }
+        m_rhi.reset();
+
+        if (m_render_scene)
+        {
+            m_render_scene->clear();
+        }
+        m_render_scene.reset();
+
+        if (m_render_resource)
+        {
+            m_render_resource->clear();
+        }
+        m_render_resource.reset();
+        
+        if (m_render_pipeline)
+        {
+            m_render_pipeline->clear();
+        }
+        m_render_pipeline.reset();
+    }
+
     void RenderSystem::swapLogicRenderData() { m_swap_context.swapLogicRenderData(); }
 
     RenderSwapContext& RenderSystem::getSwapContext() { return m_swap_context; }
 
     std::shared_ptr<RenderCamera> RenderSystem::getRenderCamera() const { return m_render_camera; }
+
+    std::shared_ptr<RHI>          RenderSystem::getRHI() const { return m_rhi; }
 
     void RenderSystem::updateEngineContentViewport(float offset_x, float offset_y, float width, float height)
     {
@@ -195,7 +232,14 @@ namespace Piccolo
         return m_render_scene->getMeshAssetIdAllocator();
     }
 
-    void RenderSystem::clearForLevelReloading() { m_render_scene->clearForLevelReloading(); }
+    void RenderSystem::clearForLevelReloading()
+    {
+        m_render_scene->clearForLevelReloading();
+
+        ParticleSubmitRequest request;
+
+        m_swap_context.getLogicSwapData().m_particle_submit_request = request;
+    }
 
     void RenderSystem::setRenderPipelineType(RENDER_PIPELINE_TYPE pipeline_type)
     {
@@ -329,7 +373,7 @@ namespace Piccolo
                     }
                 }
                 // after finished processing, pop this game object
-                swap_data.m_game_object_resource_desc->popProcessObject();
+                swap_data.m_game_object_resource_desc->pop();
             }
 
             // reset game object swap data to a clean state
@@ -343,7 +387,7 @@ namespace Piccolo
             {
                 GameObjectDesc gobject = swap_data.m_game_object_to_delete->getNextProcessObject();
                 m_render_scene->deleteEntityByGObjectID(gobject.getId());
-                swap_data.m_game_object_to_delete->popProcessObject();
+                swap_data.m_game_object_to_delete->pop();
             }
 
             m_swap_context.resetGameObjectToDelete();
@@ -368,6 +412,38 @@ namespace Piccolo
             }
 
             m_swap_context.resetCameraSwapData();
+        }
+
+        if (swap_data.m_particle_submit_request.has_value())
+        {
+            std::shared_ptr<ParticlePass> particle_pass =
+                std::static_pointer_cast<ParticlePass>(m_render_pipeline->m_particle_pass);
+
+            int emitter_count = swap_data.m_particle_submit_request->getEmitterCount();
+            particle_pass->setEmitterCount(emitter_count);
+
+            for (int index = 0; index < emitter_count; ++index)
+            {
+                const ParticleEmitterDesc& desc = swap_data.m_particle_submit_request->getEmitterDesc(index);
+                particle_pass->createEmitter(index, desc);
+            }
+
+            particle_pass->initializeEmitters();
+
+            m_swap_context.resetPartilceBatchSwapData();
+        }
+        if (swap_data.m_emitter_tick_request.has_value())
+        {
+            std::static_pointer_cast<ParticlePass>(m_render_pipeline->m_particle_pass)
+                ->setTickIndices(swap_data.m_emitter_tick_request->m_emitter_indices);
+            m_swap_context.resetEmitterTickSwapData();
+        }
+
+        if (swap_data.m_emitter_transform_request.has_value())
+        {
+            std::static_pointer_cast<ParticlePass>(m_render_pipeline->m_particle_pass)
+                ->setTransformIndices(swap_data.m_emitter_transform_request->m_transform_descs);
+            m_swap_context.resetEmitterTransformSwapData();
         }
     }
 } // namespace Piccolo

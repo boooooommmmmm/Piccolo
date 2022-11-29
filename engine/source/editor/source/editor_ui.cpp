@@ -23,6 +23,7 @@
 #include "runtime/function/render/render_camera.h"
 #include "runtime/function/render/render_system.h"
 #include "runtime/function/render/window_system.h"
+#include "runtime/function/render/render_debug_config.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -116,6 +117,24 @@ namespace Piccolo
                 trans_ptr->m_rotation.normalise();
 
                 g_editor_global_context.m_scene_manager->drawSelectedEntityAxis();
+            }
+        };
+        m_editor_ui_creator["bool"] = [this](const std::string& name, void* value_ptr)  -> void {
+            if(g_node_depth == -1)
+            {
+                std::string label = "##" + name;
+                ImGui::Text("%s", name.c_str());
+                ImGui::SameLine();
+                ImGui::Checkbox(label.c_str(), static_cast<bool*>(value_ptr));
+            }
+            else
+            {
+                if(g_editor_node_state_array[g_node_depth].second)
+                {
+                    std::string full_label = "##" + getLeafUINodeParentLabel() + name;
+                    ImGui::Text("%s", name.c_str());
+                    ImGui::Checkbox(full_label.c_str(), static_cast<bool*>(value_ptr));
+                }
             }
         };
         m_editor_ui_creator["int"] = [this](const std::string& name, void* value_ptr) -> void {
@@ -317,6 +336,38 @@ namespace Piccolo
                 if (ImGui::MenuItem("Save Current Level"))
                 {
                     g_runtime_global_context.m_world_manager->saveCurrentLevel();
+                }
+                if (ImGui::BeginMenu("Debug"))
+                {
+                    if (ImGui::BeginMenu("Animation"))
+                    {
+                        if (ImGui::MenuItem(g_runtime_global_context.m_render_debug_config->animation.show_skeleton ? "off skeleton" : "show skeleton"))
+                        {
+                            g_runtime_global_context.m_render_debug_config->animation.show_skeleton = !g_runtime_global_context.m_render_debug_config->animation.show_skeleton;
+                        }
+                        if (ImGui::MenuItem(g_runtime_global_context.m_render_debug_config->animation.show_bone_name ? "off bone name" : "show bone name"))
+                        {
+                            g_runtime_global_context.m_render_debug_config->animation.show_bone_name = !g_runtime_global_context.m_render_debug_config->animation.show_bone_name;
+                        }
+                        ImGui::EndMenu();
+                    }
+                    if (ImGui::BeginMenu("Camera"))
+                    {
+                        if (ImGui::MenuItem(g_runtime_global_context.m_render_debug_config->camera.show_runtime_info ? "off runtime info" : "show runtime info"))
+                        {
+                            g_runtime_global_context.m_render_debug_config->camera.show_runtime_info = !g_runtime_global_context.m_render_debug_config->camera.show_runtime_info;
+                        }
+                        ImGui::EndMenu();
+                    }
+                    if (ImGui::BeginMenu("Game Object"))
+                    {
+                        if (ImGui::MenuItem(g_runtime_global_context.m_render_debug_config->gameObject.show_bounding_box ? "off bounding box" : "show bounding box"))
+                        {
+                            g_runtime_global_context.m_render_debug_config->gameObject.show_bounding_box = !g_runtime_global_context.m_render_debug_config->gameObject.show_bounding_box;
+                        }
+                        ImGui::EndMenu();
+                    }
+                    ImGui::EndMenu();
                 }
                 if (ImGui::MenuItem("Exit"))
                 {
@@ -671,14 +722,27 @@ namespace Piccolo
                                g_editor_global_context.m_input_manager->getCameraSpeed());
         }
 
+        // GetWindowPos() ----->  X--------------------------------------------O
+        //                        |                                            |
+        //                        |                                            |
+        // menu_bar_rect.Min -->  X--------------------------------------------O
+        //                        |    It is the menu bar window.              |
+        //                        |                                            |
+        //                        O--------------------------------------------X  <-- menu_bar_rect.Max
+        //                        |                                            |
+        //                        |     It is the render target window.        |
+        //                        |                                            |
+        //                        O--------------------------------------------O
+
+        Vector2 render_target_window_pos = { 0.0f, 0.0f };
+        Vector2 render_target_window_size = { 0.0f, 0.0f };
+
         auto menu_bar_rect = ImGui::GetCurrentWindow()->MenuBarRect();
 
-        Vector2 new_window_pos  = {0.0f, 0.0f};
-        Vector2 new_window_size = {0.0f, 0.0f};
-        new_window_pos.x        = ImGui::GetWindowPos().x;
-        new_window_pos.y        = ImGui::GetWindowPos().y + menu_bar_rect.Min.y;
-        new_window_size.x       = ImGui::GetWindowSize().x;
-        new_window_size.y       = ImGui::GetWindowSize().y - menu_bar_rect.Min.y;
+        render_target_window_pos.x = ImGui::GetWindowPos().x;
+        render_target_window_pos.y = menu_bar_rect.Max.y;
+        render_target_window_size.x = ImGui::GetWindowSize().x;
+        render_target_window_size.y = (ImGui::GetWindowSize().y + ImGui::GetWindowPos().y) - menu_bar_rect.Max.y; // coord of right bottom point of full window minus coord of right bottom point of menu bar window.
 
         // if (new_window_pos != m_engine_window_pos || new_window_size != m_engine_window_size)
         {
@@ -687,16 +751,16 @@ namespace Piccolo
             // Return value from ImGui::GetMainViewport()->DpiScal is always the same as first frame.
             // glfwGetMonitorContentScale and glfwSetWindowContentScaleCallback are more adaptive.
             float dpi_scale = main_viewport->DpiScale;
-            g_runtime_global_context.m_render_system->updateEngineContentViewport(new_window_pos.x * dpi_scale,
-                                                                                  new_window_pos.y * dpi_scale,
-                                                                                  new_window_size.x * dpi_scale,
-                                                                                  new_window_size.y * dpi_scale);
+            g_runtime_global_context.m_render_system->updateEngineContentViewport(render_target_window_pos.x * dpi_scale,
+                render_target_window_pos.y * dpi_scale,
+                render_target_window_size.x * dpi_scale,
+                render_target_window_size.y * dpi_scale);
 #else
             g_runtime_global_context.m_render_system->updateEngineContentViewport(
-                new_window_pos.x, new_window_pos.y, new_window_size.x, new_window_size.y);
+                render_target_window_pos.x, render_target_window_pos.y, render_target_window_size.x, render_target_window_size.y);
 #endif
-            g_editor_global_context.m_input_manager->setEngineWindowPos(new_window_pos);
-            g_editor_global_context.m_input_manager->setEngineWindowSize(new_window_size);
+            g_editor_global_context.m_input_manager->setEngineWindowPos(render_target_window_pos);
+            g_editor_global_context.m_input_manager->setEngineWindowSize(render_target_window_size);
         }
 
         ImGui::End();
